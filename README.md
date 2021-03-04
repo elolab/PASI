@@ -6,15 +6,15 @@ PASI can be installed by opening R and typing devtools::install_github("elolab/P
 
 ### Input and output
 
-The only mandatory input from the user are data and grouplabels.
+The only mandatory input from the user are **data** and **grouplabels**.
 | Input | Description |
 | ----------- | ----------- |
-| **data** | A data frame of gene expression data in log2 scale (rows: Entrez genes, cols: samples) |
-| **grouplabels** | An integer vector indicating sample groups. If argument **score** is set to "deregulation", control samples should be indicated with label 0. |
-| **pathwayadress** | NULL (default) or a path to .xml pathways downloaded from KEGG. If this is set to NULL, pathway structures are accessed automatically from KEGG. |
-| **datatype** | Either "microarray" (default) or "rnaseq" |
-| **noisedefault** | The default cutoff (numeric value or character ”automatic” (default)) for real signal |
-| **score** | Either "activity" (default) or "deregulation" based on what the returned pathway scores should reflect (more details below). |
+| data | A data frame of gene expression data in log2 scale (rows: Entrez genes, cols: samples) |
+| grouplabels | An integer vector indicating sample groups. If argument **score** is set to "deregulation", control samples should be indicated with label 0. |
+| pathwayadress | NULL (default) or a path to .xml pathways downloaded from KEGG. If this is set to NULL, pathway structures are accessed automatically from KEGG. |
+| datatype | Either "microarray" (default) or "rnaseq" |
+| noisedefault | The default cutoff (numeric value or character ”automatic” (default)) for real signal |
+| score | Either "activity" (default) or "deregulation" based on what the returned pathway scores should reflect (more details below). |
 
 The argument **grouplabels** should be an integer vector with as many elements as columns (i.e. samples) in the gene expression data. Number 0 indicates a control sample. In case the expression data contains no sample groups, **grouplabels** can be set to dummy value of only zeros rep(0,ncol(data).
 
