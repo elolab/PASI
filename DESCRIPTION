@@ -1,0 +1,10 @@
+Package: PASI
+Type: Package
+Title: Pathway analysis for sample-level information
+Version: 1.2
+Date: 2018-08-10
+Author: Maria K. Jaakkola
+Maintainer: Maria K. Jaakkola <maria.jaakkola@utu.fi>
+Description: PASI provides pathway values (KEGG pathways) for each sample in given gene expression data. The pathway values can represent either pathway activity or deregulation, based on given argument 'score'.
+Imports: stats, utils
+License: GPL-2
