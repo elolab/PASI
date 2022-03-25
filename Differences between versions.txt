@@ -1,0 +1,17 @@
+Maintainer: Maria Jaakkola (maria.jaakkola@utu.fi)
+
+PASI 1.0:
+- original
+
+PASI 1.1:
+- Bug fixed (default value was used too easily in noise level detection).
+- Bug fixed (representing Entrez id for type 'gene' nodes was accidentally selected randomly in case only one of them was measured).
+- PASI now accesses KEGG pathways directly via API, so the user doesn't have to download the pathway files.
+
+PASI 1.2:
+- Input simplified
+- Input data directly Entrez instead of probe id and mapping
+- Parts requiring external packages excluded (DE gene detection, visualization)
+- Score-option added (default: final score represents pathway activity rather than deregulation)
+
+PASI 2.0:
