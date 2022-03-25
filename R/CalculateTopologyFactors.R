@@ -15,7 +15,7 @@ CalculateTopologyFactors = function(pathways, statistics){
     occurrences = pathwayoccurrences[[p]]
     fneighbors = pathwayfneighbors[[p]]
     sneighbors = pathwaysneighbors[[p]]
-    nodes = pathway$nodeinfo$nodeid
+    nodes = pathway$nodeinfo$Id
     
     # Detect neighborvalues and scale them to interval [0,1] within pathway
     neighboreffect = fneighbors + 0.5*sneighbors
@@ -25,12 +25,12 @@ CalculateTopologyFactors = function(pathways, statistics){
     # Scale occurrences to interval [0,1] within pathway
     scaledoccurrences = occurrences/max(occurrences) 
     
-    # Calculate and scale importances to interval (0.9, 1.1]
+    # Calculate and scale importances to interval (0.9, 1.1] # This sounds very little meaning
     rawimportances = neighboreffect/scaledoccurrences
     block = 0.2/length(fneighbors)
     scaledimportances = 0.9 + rank(rawimportances)*block
     
     importances[[p]] = scaledimportances
   }
- return(importances) 
+  return(importances) 
 }

@@ -1,7 +1,7 @@
 Package: PASI
 Type: Package
 Title: Pathway analysis for sample-level information
-Version: 1.2
+Version: 1.3
 Date: 2018-08-10
 Author: Maria K. Jaakkola
 Maintainer: Maria K. Jaakkola <maria.jaakkola@utu.fi>

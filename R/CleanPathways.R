@@ -14,88 +14,62 @@ CleanPathways = function(paths){
   pathways = lapply(paths, function(x){
     
     # Extract relevant node and relation info from the pathway
-    nodeinf = x$nodeinfo
-    relationinf = x$relationinfo
-    nodetypes = nodeinf$nodetype
-    nodeids = nodeinf$nodeid
-    nodeentrez = nodeinf$nodeentrez
-    entrez = unlist(lapply(nodeentrez, function(x){
-      melted = paste(x, collapse=" ")
-      return(melted)
-    }))
-    if(is.list(relationinf)){
-      relationtypes = relationinf$relationtype
-      starts = relationinf$startnode
-      ends = relationinf$endnode
-    }
+    node = x$nodeinfo
+    relation = x$relationinfo
     
-    # Detect indices of nodes with prohibited node type
-    dropnodeindex_type = which(!(nodetypes %in% allowednodetypes))
-    
-    # Detect indices of nodes with identical entrez
-    dropnodeindex_duplicate = which(duplicated(entrez))
-    
-    # Make corresponding changes into relation from/to the double nodes
-    if(length(dropnodeindex_duplicate) > 0 & is.list(relationinf)){ 
-      replacementindex = match(entrez[dropnodeindex_duplicate],entrez,nomatch=0)
-      oldid = nodeids[dropnodeindex_duplicate]
-      newid = nodeids[replacementindex]
-      for(i in 1:length(oldid)){
-        from = oldid[i]
-        to = newid[i]
-        starts[which(starts==from)] = to
-        ends[which(ends==from)] = to
+    # Keep only nodes of allowed types (drop also relations from/to excluded node types)
+    dropnodetypeindex = which(!(node$Type %in% allowednodetypes))
+    if(length(dropnodetypeindex) > 0){
+      if(is.data.frame(relation)){
+        ids = node$Id[dropnodetypeindex]
+        dropind = which((relation$StartId %in% ids) | (relation$EndId %in% ids))
+        relation = relation[setdiff(1:nrow(relation), dropind),,drop=F]
+        if(nrow(relation) < 1) relation = NA
       }
+      node = node[-dropnodetypeindex,,drop=F]
     }
     
-    if(is.list(relationinf)){
-      
-      # Detect indices of relations with prohibited relation type
-      droprelationindex_type = which(!(relationtypes %in% allowedrelationtypes))
-      
-      # Detect indices of relations from or to prohibited node type
-      prohibitednodeids = unique(nodeids[dropnodeindex_type])
-      droprelationindex_nodetype = which((starts %in% prohibitednodeids)|(ends %in% prohibitednodeids))
-      
-      # Detect indices of double relations (the first occurrence of the relation is kept)
-      droprelationindex_duplicate = which(duplicated(paste(starts, ends, sep=" ")))
-      
-      # Detect indices of relations from a node to the same node
-      droprelationindex_loop = which(starts == ends)
+    if(nrow(node) < 1) return(NA)
+    
+    # Merge nodes with identical Entrez
+    duplicatednodeindex = which(duplicated(node$Entrez))
+    if(length(duplicatednodeindex) > 0){
+      if(is.data.frame(relation)){
+        for(i in duplicatednodeindex){
+          id = node[i,"Id"]
+          replacement = node$Id[match(node[i,"Entrez"],node$Entrez[1:(i-1)])]
+          relation[relation$StartId == id,"StartId"] = replacement
+          relation[relation$EndId == id,"EndId"] = replacement
+        }
+      }
+      node = node[-duplicatednodeindex,,drop=F]
     }
     
-    # Form index vectors of nodes and relations that should be kept in the pathway
-    dropnodes = unique(c(dropnodeindex_type, dropnodeindex_duplicate))
-    keepnodes = setdiff(1:length(nodeids), dropnodes)
-    keeprelations = NULL
-    if(is.list(relationinf)){
-      droprelations =  unique(c(droprelationindex_type, droprelationindex_nodetype, 
-                                droprelationindex_duplicate, droprelationindex_loop))
-      keeprelations = setdiff(1:length(relationtypes), droprelations)
+    if(is.data.frame(relation)){
+      
+      # Keep only relations of allowed types
+      droprelationtypeindex = which(!(relation$Type %in% allowedrelationtypes))
+      
+      # Drop relations from a node to itself
+      dropidentityrelations = which(relation$StartId == relation$EndId)
+      
+      # Merge relations with the same start and end node
+      dropduplicatedrelations = which(duplicated(relation[,c("StartId","EndId"),drop=F]))
+      
+      droprelationindex = unique(c(droprelationtypeindex, dropidentityrelations, dropduplicatedrelations))
+      if(length(droprelationindex) > 0) relation = relation[-droprelationindex,,drop=F]
+      if(nrow(relation) < 1) relation = NA
     }
     
-    # If the pathway doesn't include any nodes, return NA, otherwise return reduced pathway
-    if(length(keepnodes) > 0){
-      if(is.list(relationinf) & (length(keeprelations) > 0)){
-        x$relationinfo = list(startnode = starts[keeprelations], 
-                              endnode = ends[keeprelations], 
-                              relationname = relationinf$relationname[keeprelations], 
-                              relationtype = relationinf$relationtype[keeprelations], 
-                              relationvalue = relationinf$relationvalue[keeprelations],
-                              relationrole = relationinf$relationrole[keeprelations],
-                              direction = relationinf$direction[keeprelations])
-      } else x$relationinfo = NA
-      x$nodeinfo = list(nodeid = nodeinf$nodeid[keepnodes], 
-                        nodeentrez = nodeinf$nodeentrez[keepnodes], 
-                        nodecomponent = nodeinf$nodecomponent[keepnodes], 
-                        nodetype = nodeinf$nodetype[keepnodes],
-                        noderole = nodeinf$noderole[keepnodes])
-      return(x)
-      
-    } else return(NA)
+    pathway = list(nodeinfo=node, relationinfo=relation, pathwayname=x$pathwayname)
+    return(pathway)
   })
-  
   names(pathways) = names(paths)
+  
+  # Drop pathways that lost all their nodes in cleaning (i.e. they are only NA)
+  keepind = unlist(lapply(pathways, is.list))
+  pathways = pathways[keepind]
+  
   return(pathways)
 }
 

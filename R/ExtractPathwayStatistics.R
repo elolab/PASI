@@ -11,9 +11,8 @@ ExtractPathwayStatistics = function(pathways){
   
   # Detect entrez ids of each node in each pathway
   pathwayentrez = lapply(pathways, function(x){
-    rawentrez = x$nodeinfo$nodeentrez
-    oneentrez = unlist(lapply(rawentrez, function(y){return(paste(y, collapse="_"))}))
-    return(oneentrez)
+    entrez = x$nodeinfo$Entrez
+    return(entrez)
   })
   
   # Create named vector of occurrences
@@ -22,14 +21,14 @@ ExtractPathwayStatistics = function(pathways){
   # Investigate pathways one by one
   for(i in 1:length(pathways)){
     
-    if(is.list(pathways[[i]]$relationinfo)){
+    if(is.list(pathways[[i]]$relationinfo)){ # NOTE: ok, because is.list returns TRUE for data frames
       
       # Pick initial pathway info
       pathway = pathways[[i]]
-      nodes = pathway$nodeinfo$nodeid
+      nodes = pathway$nodeinfo$Id
       entrez = pathwayentrez[[i]]
-      start = pathway$relationinfo$startnode
-      end = pathway$relationinfo$endnode
+      start = pathway$relationinfo$StartId
+      end = pathway$relationinfo$EndId
       firstn = NULL
       secondn = NULL
       

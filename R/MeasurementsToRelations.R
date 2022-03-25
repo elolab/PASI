@@ -10,10 +10,10 @@ MeasurementsToRelations = function(pathways, zscores){
     if(is.list(p$relationinfo)){
       node = p$nodeinfo
       relation = p$relationinfo
-      roles = relation$relationrole
+      roles = relation$Role
       
       # Initialize relation value matrix for pathway p
-      relationnumber = length(relation$startnode)
+      relationnumber = nrow(relation)
       prelationvalues = mat.or.vec(relationnumber, ncol(zscores))
       rownames(prelationvalues) = paste("Relation", 1:relationnumber, sep="")
       colnames(prelationvalues) = colnames(zscores)
@@ -22,11 +22,11 @@ MeasurementsToRelations = function(pathways, zscores){
       for(i in 1:relationnumber){
         
         # Detect which Entrez ids are mapped to the parent and child node of the relation
-        startnodeid = relation$startnode[i]
-        endnodeid = relation$endnode[i]
-        interaction = relation$direction[i]
-        startentrez = node$nodeentrez[[which(node$nodeid %in% startnodeid)]]
-        endentrez = node$nodeentrez[[which(node$nodeid %in% endnodeid)]]
+        startnodeid = relation$StartId[i]
+        endnodeid = relation$EndId[i]
+        interaction = relation$Direction[i]
+        startentrez = node$Entrez[which(node$Id %in% startnodeid)]
+        endentrez = node$Entrez[which(node$Id %in% endnodeid)]
         
         # Detect the scaled value of the parent node of the relation
         startindex = which(rownames(zscores) %in% startentrez)
@@ -49,12 +49,16 @@ MeasurementsToRelations = function(pathways, zscores){
         }
         
         # Calculate scaling parameter (high with active parent)
-        scalingparam = (0.5*startvalues+1.5)/dnorm(0,0,0.7)
+        sdev = 0.5
+        scalingparam = (0.5*startvalues+1.5)/dnorm(0,0,sdev)
         
         # Calculate relation values (NA for samples with missing parent or child measurement)
         # Note: this could be further developed by considering also other parent nodes of the child node
-        if(interaction == "activation"){ prelationvalue = scalingparam*dnorm(endvalues, mean=startvalues, sd=0.7)-1
-        } else prelationvalue = scalingparam*dnorm(-endvalues, mean=startvalues, sd=0.7)-1
+        if(interaction == "activation"){
+          prelationvalue = scalingparam*dnorm(endvalues, mean=startvalues, sd=sdev)-1
+        } else{
+          prelationvalue = scalingparam*dnorm(-endvalues, mean=startvalues, sd=sdev)-1
+        } 
         
         # Save the values for the relation
         prelationvalues[i,] = roles[i]*prelationvalue

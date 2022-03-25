@@ -21,7 +21,7 @@ CalculatePathwayValues_Activity = function(nodevalues, relationvalues, importanc
   
   # Calculate pathway specific weights for node and relation values based on their ratio
   nodeweights = mapply(function(nodeval, relval){
-    nnod = nrow(nodeval)
+    nnod = nrow(nodeval)                             # SHOULD I USE ONLY THE NUMBER OF MEASURED NODES/RELATIONS?
     if(!all(is.na(relval))){ nrel = nrow(relval)
     } else nrel = 0
     return(nnod/(nrel+nnod))

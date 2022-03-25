@@ -8,19 +8,19 @@ MeasurementsToNodes = function(pathways, data){
   samplenumber = ncol(data)
   nodevalues = lapply(pathways, function(p){
     node = p$nodeinfo
-    nodedirections = node$noderole
+    nodedirections = node$Role
     
     # Initialize node value matrix for pathway p
-    nodenumber = length(node$nodeid)
-    pnodevalues = mat.or.vec(nodenumber, samplenumber)
-    rownames(pnodevalues) = node$nodeid
+    nodenumber = nrow(node)
+    pnodevalues = matrix(NA, nrow=nodenumber, ncol=samplenumber)
+    rownames(pnodevalues) = node$Id
     colnames(pnodevalues) = colnames(data)
-
+    
     # Fill the value matrix by rows (nodes)
     for(i in 1:nodenumber){
-      entrez = node$nodeentrez[[i]]
+      entrez = node$Entrez[i]
       index = match(entrez, rownames(data), nomatch=0)
-    
+      
       if(sum(index)!=0){
         index = index[index>0]
         
@@ -33,15 +33,13 @@ MeasurementsToNodes = function(pathways, data){
         }
         
         pnodevalues[i,] = nodedirections[i]*values
-
-      } else{
-        pnodevalues[i,] = rep(NA, ncol(data))
+        
       }
     }
     
     return(pnodevalues)
   })
   names(nodevalues) = names(pathways)
-
+  
   return(nodevalues)
 }

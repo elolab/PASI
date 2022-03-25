@@ -8,14 +8,14 @@ DetermineRoles = function(pathways, score){
     # Extract relevant information
     relations = x$relationinfo
     nodes = x$nodeinfo
-    id = nodes$nodeid
-    if(!is.list(relations)){ # All nodes in pathways without edges are activating
-      x$nodeinfo$noderole = rep(1, length(id))
+    id = nodes$Id
+    if(!is.list(relations)){ # All nodes in pathways without edges are activating NOTE: is.list is fine as data frames return TRUE
+      x$nodeinfo$Role = rep(1, length(id))
       return(x)
     }  
-    ends = relations$endnode
-    starts = relations$startnode
-    directions = relations$direction
+    ends = relations$EndId
+    starts = relations$StartId
+    directions = relations$Direction
     
     # Initialize node roles within pathway as active and relations according to their directions
     noderoles = rep(1, length(id))
@@ -25,7 +25,7 @@ DetermineRoles = function(pathways, score){
     if(score == "activity"){
       
       # Update node roles based on their majority leaving relation
-      noderoles = UpdateNodeRoles(starts, id, relationroles, noderoles)
+      noderoles = UpdateNodeRoles(starts, ends, id, relationroles, noderoles)
       
       continue = TRUE
       iterationcounter = 0
@@ -42,7 +42,7 @@ DetermineRoles = function(pathways, score){
         }
         
         # Update node roles based on their majority leaving relation
-        noderoles = UpdateNodeRoles(starts, id, relationroles, noderoles)
+        noderoles = UpdateNodeRoles(starts, ends, id, relationroles, noderoles)
         
         # Set relations activating inhibitor nodes as inhibiting
         actinhrelindex = which(directions == "activation" & noderoles[match(ends, id, 0)] == -1)
@@ -51,7 +51,7 @@ DetermineRoles = function(pathways, score){
         }
         
         # Update node roles based on their majority leaving relation
-        noderoles = UpdateNodeRoles(starts, id, relationroles, noderoles)
+        noderoles = UpdateNodeRoles(starts, ends, id, relationroles, noderoles)
         
         # If no change from previous iteration, stop
         if(all(noderoles == nodeprev) & all(relationroles == relationprev)){ 
@@ -60,11 +60,9 @@ DetermineRoles = function(pathways, score){
       }
     }
     
-    
-    
     # Add node and relation roles to pathway info
-    x$nodeinfo$noderole = noderoles
-    x$relationinfo$relationrole = relationroles
+    x$nodeinfo$Role = noderoles
+    x$relationinfo$Role = relationroles
     
     return(x)
   })
@@ -75,20 +73,39 @@ DetermineRoles = function(pathways, score){
 # Helper script for DetectRoles
 # Updates node roles so that each node is the majority relation role leaving from the node
 
-UpdateNodeRoles = function(starts, nodeids, relationroles, noderoles){
+UpdateNodeRoles = function(starts, ends, nodeids, relationroles, noderoles){
+  
+  # Calculate number of child nodes for each node (named with node ids)
+  childnumber = rep(0,length(nodeids))
+  names(childnumber) = nodeids
+  childnumber[nodeids[nodeids %in% starts]] = table(starts)[as.character(nodeids[nodeids %in% starts])]
+  
+  # Update nodes one by one
   for(i in 1:length(noderoles)){
     nodeid = nodeids[i]
+    
+    # If the node has children, update primarly according to leaving relations
     leavingrelindex = which(starts %in% nodeid)
     if(length(leavingrelindex) > 0){
       leavingrelroles = relationroles[leavingrelindex]
       majorityrole = 1
-      if(sum(leavingrelroles) < 0){
+      if(sum(leavingrelroles*childnumber[ends[leavingrelindex]]) <= 0){
         majorityrole = -1
       }
       noderoles[i] = majorityrole
+      
+    # Leaf nodes are updated according to relations regulating them (islands are not updated)
+    } else{
+      arrivingrelindex = which(ends %in% nodeid)
+      if(length(arrivingrelindex) > 0){
+        arrivingrelroles = relationroles[arrivingrelindex]
+        majorityrole = 1
+        if(sum(arrivingrelroles) <= 0){
+          majorityrole = -1
+        }
+        noderoles[i] = majorityrole
+      }
     }
   }
   return(noderoles)
 }
-
-
