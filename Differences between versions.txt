@@ -13,5 +13,3 @@ PASI 1.2:
 - Input data directly Entrez instead of probe id and mapping
 - Parts requiring external packages excluded (DE gene detection, visualization)
 - Score-option added (default: final score represents pathway activity rather than deregulation)
-
-PASI 2.0:
