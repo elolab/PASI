@@ -11,10 +11,11 @@ The only mandatory input from the user are **data** and **grouplabels**.
 | ----------- | ----------- |
 | data | A data frame of gene expression data in log2 scale (rows: Entrez genes, cols: samples) |
 | grouplabels | An integer vector indicating sample groups. If argument **score** is set to "deregulation", control samples should be indicated with label 0. |
-| pathwayadress | NULL (default) or a path to .xml pathways downloaded from KEGG. If this is set to NULL, pathway structures are accessed automatically from KEGG. |
-| datatype | Either "microarray" (default) or "rnaseq" |
+| pathwayadress | NULL (default) or a path to user-defined pathway files. If this is set to NULL, only pathway structures accessed automatically from KEGG are used. |
+| datatype | Either "microarray" or "rnaseq" (default) |
 | noisedefault | The default cutoff (numeric value or character ”automatic” (default)) for real signal |
 | score | Either "activity" (default) or "deregulation" based on what the returned pathway scores should reflect (more details below). |
+| nodemin | Pathways with fewer than **nodemin** measured nodes will be excluded from the analysis (default 5) |
 
 The argument **grouplabels** should be an integer vector with as many elements as columns (i.e. samples) in the gene expression data. Number 0 indicates a control sample. In case the expression data contains no sample groups, **grouplabels** can be set to dummy value of only zeros rep(0,ncol(data).
 
