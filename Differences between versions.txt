@@ -19,3 +19,4 @@ PASI 1.3:
 - Faster scaling of the gene expression values (based on logistic function)
 - Argument 'nodemin' added so that the user can control the lower limit of measured nodes in the analysed pathways
 - RNAseq made the default data type
+- Format of user-defined pathways simplified
