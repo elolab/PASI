@@ -57,7 +57,7 @@ ReadFilePathways = function(pathtofiles){
     
     # Identify relation lines and initialize relation info
     if(length(relationlineindex) >= 1){
-      relationinfo = as.data.frame(matrix(NA, ncol=4, nrow=length(relationindex)))
+      relationinfo = as.data.frame(matrix(NA, ncol=4, nrow=length(relationlineindex)))
       colnames(relationinfo) = c("StartId","EndId","Direction","Role")
       
       # Fill relation info
