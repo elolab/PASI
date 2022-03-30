@@ -14,7 +14,7 @@ PASI(data, grouplabels, pathwayadress=NULL, datatype="microarray", noisedefault=
 \arguments{
   \item{data}{ A data frame including gene expression data (rows: Entrez genes, cols: samples) as log2 values }
   \item{grouplabels}{ An integer vector indicating sample groups. If argument 'score' is set to "deregulation", control samples should be indicated with label 0. }
-  \item{pathwayadress}{ A path to .xml pathways downloaded from KEGG, if NULL (default), pathways are automatically accessed via KEGG api}
+  \item{pathwayadress}{ NULL (default) or a path to user-defined pathway files. If this is set to NULL, only pathway structures accessed automatically from KEGG are used.}
   \item{datatype}{ Either "microarray" or "rnaseq" (default) }
   \item{noisedefault}{ The default cutoff (numeric value or character "automatic") for real signal }
   \item{score}{ Either "activity" (default) or "deregulation" based on what the returned pathway scores should reflect}
