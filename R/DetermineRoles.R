@@ -15,17 +15,17 @@ DetermineRoles = function(pathways, score){
     }  
     ends = relations$EndId
     starts = relations$StartId
-    directions = relations$Direction
+    relationdirs = as.numeric(c("activation"=1, "inhibition"=-1)[relations$Direction])
+    # NOTE: relation direction means here inhibiting vs activiting relation, NOT defining which end is parent and which one is child
     
-    # Initialize node roles within pathway as active and relations according to their directions
+    # Initialise all node and relation roles as active (+1)
     noderoles = rep(1, length(id))
-    relationroles = c("activation"=1, "inhibition"=-1)
-    relationroles = relationroles[directions]
+    relationroles = rep(1, length(ends))
     
-    if(score == "activity"){
+    if(score == "activity_future"){ # Hopefully we will find a way to do this reliably for the next version of the package
       
       # Update node roles based on their majority leaving relation
-      noderoles = UpdateNodeRoles(starts, ends, id, relationroles, noderoles)
+      noderoles = UpdateNodeRoles(starts, ends, id, relationroles, noderoles, relationdirs)
       
       continue = TRUE
       iterationcounter = 0
@@ -36,27 +36,23 @@ DetermineRoles = function(pathways, score){
         iterationcounter = iterationcounter + 1
         
         # Set relations inhibiting inhibitor nodes as activating
-        inhinhrelindex = which(directions == "inhibition" & noderoles[match(ends, id, 0)] == -1)
-        if(length(inhinhrelindex) > 0){
-          relationroles[inhinhrelindex] = 1
-        }
+        relationroles = UpdateRelationRoles(ends, id, noderoles, relationdirs)
         
-        # Update node roles based on their majority leaving relation
-        noderoles = UpdateNodeRoles(starts, ends, id, relationroles, noderoles)
-        
-        # Set relations activating inhibitor nodes as inhibiting
-        actinhrelindex = which(directions == "activation" & noderoles[match(ends, id, 0)] == -1)
-        if(length(inhinhrelindex) > 0){
-          relationroles[actinhrelindex] = -1
-        }
-        
-        # Update node roles based on their majority leaving relation
-        noderoles = UpdateNodeRoles(starts, ends, id, relationroles, noderoles)
+        # Update node roles
+        noderoles = UpdateNodeRoles(starts, ends, id, relationroles, noderoles, relationdirs)
         
         # If no change from previous iteration, stop
         if(all(noderoles == nodeprev) & all(relationroles == relationprev)){ 
           continue=FALSE
         }
+      }
+      
+      # If more than half of the nodes have role -1, the algorithm probably went "wrong way" and all the roles should be the opposite
+      if(sum(noderoles) < 0){
+        noderoles = -1 * noderoles
+        relationroles = -1 * relationroles
+        islandindex = which(!(id %in% starts) & !(id %in% ends))
+        if(length(islandindex) > 0) noderoles[islandindex] = 1
       }
     }
     
@@ -73,39 +69,68 @@ DetermineRoles = function(pathways, score){
 # Helper script for DetectRoles
 # Updates node roles so that each node is the majority relation role leaving from the node
 
-UpdateNodeRoles = function(starts, ends, nodeids, relationroles, noderoles){
+UpdateNodeRoles = function(starts, ends, nodeids, relationroles, noderoles, relationdirs){
   
   # Calculate number of child nodes for each node (named with node ids)
   childnumber = rep(0,length(nodeids))
   names(childnumber) = nodeids
   childnumber[nodeids[nodeids %in% starts]] = table(starts)[as.character(nodeids[nodeids %in% starts])]
   
-  # Update nodes one by one
-  for(i in 1:length(noderoles)){
-    nodeid = nodeids[i]
-    
-    # If the node has children, update primarly according to leaving relations
-    leavingrelindex = which(starts %in% nodeid)
-    if(length(leavingrelindex) > 0){
-      leavingrelroles = relationroles[leavingrelindex]
+  # Define indices of nodes with children, island nodes without parents or children, and leaf nodes without children but with parents
+  index_parent = which(childnumber > 0)
+  index_island = which((childnumber == 0) & !(nodeids %in% ends))
+  index_youngest = setdiff(which(childnumber == 0), index_island)
+  
+  # Initialize all roles as 1
+  noderoles = rep(1, length(nodeids))
+  
+  #index = which((nodeids %in% starts) | (nodeids %in% ends))
+  #influence = relationroles * relationdirs
+  #if(length(index) > 0){
+  #  for(i in index){
+  #    arrivingrelindex = which(ends == nodeids[i])
+  #    leavingrelindex = which(starts == nodeids[i])
+  #    arrivingeffect = sum(influence[arrivingrelindex])
+  #    leavingeffect = sum(relationroles[leavingrelindex])
+  #    if(arrivingeffect + leavingeffect <= 0) noderoles[i] = -1
+  #  }
+  #}
+  
+  # Leaf nodes' roles are defined by majority vote from arriving relations (role*direction)
+  parentalinfluence = relationroles * relationdirs
+  if(length(index_youngest) > 0){
+    for(i in index_youngest){
+      arrivingrelindex = which(ends %in% nodeids[i])
       majorityrole = 1
-      if(sum(leavingrelroles*childnumber[ends[leavingrelindex]]) <= 0){
-        majorityrole = -1
-      }
-      noderoles[i] = majorityrole
-      
-    # Leaf nodes are updated according to relations regulating them (islands are not updated)
-    } else{
-      arrivingrelindex = which(ends %in% nodeid)
-      if(length(arrivingrelindex) > 0){
-        arrivingrelroles = relationroles[arrivingrelindex]
-        majorityrole = 1
-        if(sum(arrivingrelroles) <= 0){
-          majorityrole = -1
-        }
-        noderoles[i] = majorityrole
-      }
+      if(sum(parentalinfluence[arrivingrelindex]) <= 0) noderoles[i] = -1
     }
   }
+  
+  # Nodes with children are updated according to majority vote of leaving relation roles
+  if(length(index_parent) > 0){
+    for(j in index_parent){
+      leavingrelindex = which(starts %in% nodeids[j])
+      leavingrelroles = relationroles[leavingrelindex]
+      if(sum(leavingrelroles) <= 0) noderoles[j] = -1
+      #if(sum(leavingrelroles*(childnumber[ends[leavingrelindex]]+1)) <= 0) noderoles[j] = -1 
+    }
+  }
+
   return(noderoles)
+}
+
+
+#
+UpdateRelationRoles = function(ends, nodeids, noderoles, relationdirs){
+  
+  # Define which relations activate inhibitor nodes or inhibit activator nodes (these relations' roles are -1)
+  endnodeindices = match(ends, nodeids, nomatch=0)
+  index_inhibitorsactivator = which((noderoles[endnodeindices] == -1) & (relationdirs == 1))
+  index_activatorsinhibitor = which((noderoles[endnodeindices] == 1) & (relationdirs == -1))
+  
+  # Set new relation roles
+  relationroles = rep(1, length(ends))
+  relationroles[c(index_inhibitorsactivator, index_activatorsinhibitor)] = -1
+  
+  return(relationroles)
 }
