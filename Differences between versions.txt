@@ -20,3 +20,5 @@ PASI 1.3:
 - Argument 'nodemin' added so that the user can control the lower limit of measured nodes in the analysed pathways
 - RNAseq made the default data type
 - Format of user-defined pathways simplified
+- Figured out that DetermineRoles (used with activity scores) doesn't work with some structures, so now it returns only default 1 for all nodes.
+  We hope to get this feature back into use in the coming versions of the package.
