@@ -1,26 +1,17 @@
 # INPUT: "data" is the gene expression data (rows: Entrez genes, cols: samples),
 #        "grouplabels" is an integer vector (starting from 0) indicating which samples belong to the same group,
 #        "pathwayadress" is path to .xml pathways downloaded from KEGG, 
-#        "datatype" is a character like "rnaseq_tpm" describing the type of genomic input data in file "data",
-#        "noisedefault" is the default cutoff (numeric value) for real signal, and
 #        "score" is the score type for final output (character 'activity' or 'deregulation').
 # OUTPUT: Checks that all arguments are valid (gives an error if not) and sets some default values. 
 
-CheckInput = function(data, grouplabels, pathwayadress, datatype, noisedefault, score, nodemin){
-  
-  datatypes = c("microarray", "rnaseq")
-  message = "Argument datatype should be either 'microarray' or 'rnaseq'."
-  if(!(datatype %in% datatypes)) stop(message)
-  
-  if(!is.na(noisedefault)){
-    message = "Argument noisedefault should be either a numeric value, NA, or 'automatic' (default)"
-    if(!is.numeric(noisedefault) & (noisedefault!="automatic")) stop(message)
-    
-    if(noisedefault == "automatic"){
-      noisedefault = c(6, 3.3)[datatypes %in% datatype]
-    }
+CheckInput = function(data, grouplabels, pathwayadress, useKEGG, score, nodemin){ 
+
+  # If no pathway adress is given set useKEGG to TRUE as some pathways need to be accessed
+  if(is.null(pathwayadress)){
+    if(!useKEGG) print("Argument useKEGG is set to TRUE bacause no custom pathways were provided and some pathways are needed for analysis")
+    useKEGG = TRUE
   }
-  
+
   # Check that all columns in data have a label
   if(length(grouplabels) != ncol(data)){
     stop("Number of samples in 'data' and 'grouplabels' are different.")
@@ -54,5 +45,5 @@ CheckInput = function(data, grouplabels, pathwayadress, datatype, noisedefault, 
     }
   } 
   
-  return(list(data, noisedefault))
+  return(data)
 }

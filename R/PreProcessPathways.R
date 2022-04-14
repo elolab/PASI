@@ -6,17 +6,19 @@
 #
 #
 #
-PreProcessPathways = function(pathwayadress, data, nodemin, score){
+PreProcessPathways = function(pathwayadress, useKEGG, data, nodemin, score){
   
-  # Detect which KEGG human pathways can be accessed via API (requires internet connection)
-  # NOTE: modify the suffix in link for other organisms
-  rawapipathways = strsplit(readLines("http://rest.kegg.jp//list/pathway/hsa"), split="\t")
-  apipathways = unlist(lapply(rawapipathways, function(x){return(gsub("path:", "", x[1]))}))
+  # Read KEGG pathways from API
+  if(useKEGG){ 
+    # Detect which KEGG human pathways can be accessed via API (requires internet connection)
+    rawapipathways = strsplit(readLines("http://rest.kegg.jp//list/pathway/hsa"), split="\t")
+    apipathways = unlist(lapply(rawapipathways, function(x){return(gsub("path:", "", x[1]))}))
   
-  # Access KEGG human pathways via API (requires internet connection)
-  conprefix = "http://rest.kegg.jp//get/"
-  apiconnections = unlist(lapply(apipathways, function(x){paste(conprefix, "/kgml", sep=x)}))
-  rawpathwaysautomatic = ReadKEGGPathways(apiconnections, data)
+    # Access KEGG human pathways via API (requires internet connection)
+    conprefix = "http://rest.kegg.jp//get/"
+    apiconnections = unlist(lapply(apipathways, function(x){paste(conprefix, "/kgml", sep=x)}))
+    rawpathwaysautomatic = ReadKEGGPathways(apiconnections, data)
+  } else rawpathwaysautomatic = NULL
   
   # Read pathways from file
   if(is.null(pathwayadress)){

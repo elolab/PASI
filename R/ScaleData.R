@@ -1,20 +1,8 @@
 # Input: "data" is gene level data,
 #        "labels" is an integer vector defining sample groups,
-#        "noise" is a noise level detected from function DetectNoise,
 #        "score" is the score type for final output (character 'activity' or 'deregulation').
-# Output: Returns a scaled version of "data" (the order of samples and genes remains the same, though lowly expressed genes are filtered out)
-ScaleData = function(data, labels, noise, score){
-  
-  # Remove genes that are just noise in all groups
-  if(!is.na(noise)){
-    realsignal = apply(data, 1, function(x){
-      groupsignal = unlist(lapply(split(x, labels), median, na.rm=T))
-      keep = T
-      if(all(groupsignal < noise)) keep = F
-      return(keep)
-    })
-    data = data[realsignal,]
-  }
+# Output: Returns a scaled version of "data" (the order of samples and genes remains the same)
+ScaleData = function(data, labels, score){
   
   # Reduce median control from all samples -> median control has value 0 in all genes
   controlindex = which(labels == 0)

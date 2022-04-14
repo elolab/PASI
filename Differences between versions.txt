@@ -20,5 +20,10 @@ PASI 1.3:
 - Argument 'nodemin' added so that the user can control the lower limit of measured nodes in the analysed pathways
 - RNAseq made the default data type
 - Format of user-defined pathways simplified
+
+PASI 1.4:
+- Improved documentation
+- Filtering of low-expression genes is separated into its own function FilterNoise because in many cases the data is readily preprocessed, and arguments related to that made the user interface of the main function PASI unnecessarily complicated
+- Accessing KEGG pathways is made optional (though still default) rather than mandatory step. Now the end user can analyse only their own pathways, if wanted. 
 - Figured out that DetermineRoles (used with activity scores) doesn't work with some structures, so now it returns only default 1 for all nodes.
   We hope to get this feature back into use in the coming versions of the package.
