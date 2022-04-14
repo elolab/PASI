@@ -5,6 +5,8 @@
 
 CalculatePathwayValues_Activity = function(nodevalues, relationvalues, importancefactors){
   
+  numberofsamples = ncol(nodevalues[[1]])
+  
   # Calculate average node value scaled with importances (list of pathways)
   nodemeans = mapply(function(x, importance){
       scalednodes = importance*x
@@ -15,7 +17,7 @@ CalculatePathwayValues_Activity = function(nodevalues, relationvalues, importanc
   # Calculate average relation value (list of pathways)
   relationmeans = lapply(relationvalues, function(y){
     if(!all(is.na(y))){ averagerelationvals = colMeans(y, na.rm=TRUE)
-    } else averagerelationvals = NA
+    } else averagerelationvals = rep(NA, numberofsamples)
     return(averagerelationvals)
   })
   
