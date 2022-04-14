@@ -4,7 +4,7 @@ PASI (Pathway Analysis for Sample-level Information) is a pathway analysis tool 
 
 PASI can be installed by opening R and typing devtools::install_github("elolab/PASI") (requires package devtools to be installed).
 
-### PASI Input and output
+### PASI input and output
 
 The only mandatory PASI inputs from the user are **data** and **grouplabels**.
 | Input | Description |
@@ -34,7 +34,7 @@ There are two options for argument **score**. The default one is "activity" and 
 
 Function PASI returns a data frame where columns are samples, rows are pathways and elements are sample specific pathway scores. The interpretation of a score is dependent on argument **score** (see above). The same results are written into a file named as "PASI YYYY-MM-DD.txt" in the current working directory (type getwd() to see what is your working directory at the moment).
 
-### FilterNoise Input and output
+### FilterNoise input and output
 
 Besides the main function PASI doing the pathway analysis, the R package offers a function FilterNoise for exluding genes with low expression in all sample groups.
 
